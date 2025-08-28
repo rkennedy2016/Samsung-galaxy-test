@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Samsung Simulator</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      touch-action: manipulation;
+      overflow: hidden;
+      background: url('https://images.unsplash.com/photo-1601979031925-3c36f3b8d8b5?auto=format&fit=crop&w=1280&q=80') no-repeat center center fixed;
+      background-size: cover;
+      color: #000;
+    }
+
+    #status-bar {
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 1em;
+    }
+
+    #home-screen {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .app {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      padding: 40px 20px;
+      font-size: 1.2em;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .app:active {
+      transform: scale(0.95);
+    }
+
+    #app-view, #camera-view, #control-menu, #wearables-tab {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.95);
+      padding: 20px;
+      display: none;
+      flex-direction: column;
+      z-index: 10;
+    }
+
+    #app-view h2, #wearables-tab h2 {
+      margin-top: 0;
+    }
+
+    #back-btn {
+      background: #000;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1em;
+      border-radius: 8px;
+      cursor: pointer;
+      align-self: flex-start;
+    }
+
+    #camera {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #control-menu button, .wearable {
+      margin: 10px;
+      padding: 15px;
+      font-size: 1em;
+      border-radius: 8px;
+      border: none;
+      background: #000;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .wearable {
+      background: #007aff;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .dark-mode {
+      background: #000 !important;
+      color: #fff !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="status-bar">
+    <span id="time">10:48</span>
+    <span id="battery">🔋 85%</span>
+  </div>
+
+  <div id="home-screen">
+    <div class="app" onclick="openApp('Gallery')">📷 Gallery</div>
+    <div class="app" onclick="openApp('Messages')">💬 Messages</div>
+    <div class="app" onclick="openApp('Settings')">⚙️ Settings</div>
+    <div class="app" onclick="openApp('Camera')">📹 Camera</div>
+    <div class="app" onclick="toggleWearables()">🧿 Wearables</div>
+  </div>
+
+  <div id="app-view">
+    <button id="back-btn" onclick="closeApp()">⏴ Back</button>
+    <div id="app-content"></div>
+  </div>
+
+  <div id="camera-view">
+    <button id="back-btn" onclick="closeCamera()">⏴ Back</button>
+    <video id="camera" autoplay playsinline></video>
+  </div>
+
+  <div id="wearables-tab">
+    <button id="back-btn" onclick="toggleWearables()">⏴ Back</button>
+    <h2>Samsung Wearables</h2>
+    <div class="wearable" onclick="showWearable('Galaxy Watch')">⌚ Galaxy Watch</div>
+    <div class="wearable" onclick="showWearable('Galaxy Ring')">💍 Galaxy Ring</div>
+    <div class="wearable" onclick="showWearable('Galaxy Buds')">🎧 Galaxy Buds</div>
+  </div>
+
+  <div id="control-menu">
+    <button onclick="toggleTheme()">🌓 Theme</button>
+    <button onclick="toggleFold()">🔁 Fold</button>
+    <button onclick="openCamera()">📷 Camera</button>
+    <button onclick="toggleWearables()">🧿 Wearables</button>
+    <button onclick="closeControlMenu()">❌ Close</button>
+  </div>
+
+  <script>
+    function updateTime() {
+      const now = new Date();
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      document.getElementById('time').textContent = `${hours}:${minutes}`;
+    }
+
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    function openApp(name) {
+      document.getElementById('home-screen').style.display = 'none';
+      document.getElementById('app-view').style.display = 'flex';
+      const content = document.getElementById('app-content');
+      content.innerHTML = `<h2>${name}</h2><p>This is a simulated ${name} app.</p>`;
+    }
+
+    function closeApp() {
+      document.getElementById('app-view').style.display = 'none';
+      document.getElementById('home-screen').style.display = 'grid';
+    }
+
+    function openCamera() {
+      document.getElementById('home-screen').style.display = 'none';
+      document.getElementById('camera-view').style.display = 'flex';
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          document.getElementById('camera').srcObject = stream;
+        });
+    }
+
+    function closeCamera() {
+      document.getElementById('camera-view').style.display = 'none';
+      document.getElementById('home-screen').style.display = 'grid';
+      const cam = document.getElementById('camera');
+      if (cam.srcObject) {
+        cam.srcObject.getTracks().forEach(track => track.stop());
+        cam.srcObject = null;
+      }
+    }
+
+    function toggleWearables() {
+      const tab = document.getElementById('wearables-tab');
+      const isVisible = tab.style.display === 'flex';
+      tab.style.display = isVisible ? 'none' : 'flex';
+      document.getElementById('home-screen').style.display = isVisible ? 'grid' : 'none';
+    }
+
+    function showWearable(name) {
+      alert(`${name} detected.\nBattery: 85%\nStatus: Connected`);
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+    }
+
+    function toggleFold() {
+      const grid = document.getElementById('home-screen');
+      grid.style.gridTemplateColumns = grid.style.gridTemplateColumns === '1fr' ? 'repeat(2, 1fr)' : '1fr';
+    }
+
+    function openControlMenu() {
+      document.getElementById('control-menu').style.display = 'flex';
+    }
+
+    function closeControlMenu() {
+      document.getElementById('control-menu').style.display = 'none';
+    }
+
+    let pressTimer;
+    function startHold() {
+      pressTimer = setTimeout(openControlMenu, 3000);
+    }
+
+    function cancelHold() {
+      clearTimeout(pressTimer);
+    }
+
+    document.getElementById('home-screen').addEventListener('touchstart', startHold);
+    document.getElementById('home-screen').addEventListener('touchend', cancelHold);
+    document.getElementById('app-view').addEventListener('touchstart', startHold);
+    document.getElementById('app-view').addEventListener('touchend', cancelHold);
+  </script>
+</body>
+</html>
